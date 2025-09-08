@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex h-screen bg-gray-100" x-data="{ activeTab: 'dashboard' }">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-md">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+        </div>
+        <nav class="mt-6">
+            <a href="#" @click.prevent="activeTab = 'dashboard'" :class="{ 'bg-gray-200': activeTab === 'dashboard' }" class="block px-4 py-2 text-gray-600 hover:bg-gray-200">Dashboard</a>
+            <a href="#" @click.prevent="activeTab = 'payments'" :class="{ 'bg-gray-200': activeTab === 'payments' }" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Payments</a>
+            <a href="#" @click.prevent="activeTab = 'profile'" :class="{ 'bg-gray-200': activeTab === 'profile' }" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Profile</a>
+            <a href="#" @click.prevent="activeTab = 'settings'" :class="{ 'bg-gray-200': activeTab === 'settings' }" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Settings</a>
+        </nav>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1 p-10">
+        <div x-show="activeTab === 'dashboard'">
+            <h2 class="text-2xl font-bold">Welcome to your dashboard, {{ user.username }}!</h2>
+            <p class="mt-2 text-gray-600">This is the main dashboard content.</p>
+        </div>
+        <div x-show="activeTab === 'payments'">
+            <h2 class="text-2xl font-bold">Payments</h2>
+            <p class="mt-2 text-gray-600">This is the payments section.</p>
+        </div>
+        <div x-show="activeTab === 'profile'">
+            <h2 class="text-2xl font-bold">Profile</h2>
+            <p class="mt-2 text-gray-600">This is the profile section.</p>
+        </div>
+        <div x-show="activeTab === 'settings'">
+            <h2 class="text-2xl font-bold">Settings</h2>
+            <p class="mt-2 text-gray-600">This is the settings section.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

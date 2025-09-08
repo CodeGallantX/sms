@@ -1,0 +1,15 @@
+{% if messages %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for message in messages %}
+            sonner.toast('{{ message }}', {
+                description: '{{ message.tags }}',
+                action: {
+                    label: 'Close',
+                    onClick: () => console.log('Close')
+                }
+            });
+        {% endfor %}
+    });
+</script>
+{% endif %}
