@@ -12,15 +12,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/sonner"></script>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Figtree', sans-serif;
         }
+    .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: inline-block; /* or block, flex, etc. */
+        }
+        .htmx-request.htmx-indicator {
+            display: inline-block; /* for elements that are themselves indicators */
+        }
     </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Preloader -->
+    <div id="preloader" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200 transition-opacity duration-500 opacity-100">
+        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-indigo-500"></div>
+    </div>
     {% toasts %}
     <nav class="bg-white shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -114,28 +129,45 @@
     const themeToggleBtn = document.getElementById('theme-toggle');
     const themeToggleIcon = document.getElementById('theme-toggle-icon');
 
+    // Function to update icon classes
+    function updateThemeIcon(isDark) {
+        if (isDark) {
+            themeToggleIcon.classList.remove('fa-sun');
+            themeToggleIcon.classList.add('fa-moon');
+        } else {
+            themeToggleIcon.classList.remove('fa-moon');
+            themeToggleIcon.classList.add('fa-sun');
+        }
+    }
+
     // On page load, set the theme based on localStorage or system preference
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
-        themeToggleIcon.classList.remove('fa-sun');
-        themeToggleIcon.classList.add('fa-moon');
+        updateThemeIcon(true);
     } else {
         document.documentElement.classList.remove('dark');
-        themeToggleIcon.classList.remove('fa-moon');
-        themeToggleIcon.classList.add('fa-sun');
+        updateThemeIcon(false);
     }
 
     themeToggleBtn.addEventListener('click', () => {
         if (document.documentElement.classList.contains('dark')) {
             document.documentElement.classList.remove('dark');
             localStorage.theme = 'light';
-            themeToggleIcon.classList.remove('fa-moon');
-            themeToggleIcon.classList.add('fa-sun');
+            updateThemeIcon(false);
         } else {
             document.documentElement.classList.add('dark');
             localStorage.theme = 'dark';
-            themeToggleIcon.classList.remove('fa-sun');
-            themeToggleIcon.classList.add('fa-moon');
+            updateThemeIcon(true);
+        }
+    });
+    // Preloader hide logic
+    window.addEventListener('load', () => {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            preloader.style.opacity = '0';
+            setTimeout(() => {
+                preloader.style.display = 'none';
+            }, 500); // Match transition duration
         }
     });
 </script>

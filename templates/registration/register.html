@@ -40,7 +40,7 @@
                         </div>
                         <input id="password" name="password" type="password" autocomplete="new-password" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your password">
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onclick="togglePasswordVisibility('password', this)">
-                            <i class="fas fa-eye"></i>
+                            <i data-lucide="eye"></i>
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
                         </div>
                         <input id="password2" name="password2" type="password" autocomplete="new-password" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Confirm your password">
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onclick="togglePasswordVisibility('password2', this)">
-                            <i class="fas fa-eye"></i>
+                            <i data-lucide="eye"></i>
                         </div>
                     </div>
                 </div>
@@ -61,6 +61,9 @@
             <div>
                 <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Sign up
+                    <span class="htmx-indicator ml-2">
+                        <i data-lucide="loader-2" class="animate-spin"></i>
+                    </span>
                 </button>
             </div>
         </form>
@@ -76,12 +79,12 @@
         const icon = iconElement.querySelector('i');
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
+            icon.setAttribute('data-lucide', 'eye-off');
+            lucide.createIcons();
         } else {
             passwordInput.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
+            icon.setAttribute('data-lucide', 'eye');
+            lucide.createIcons();
         }
     }
 
@@ -93,15 +96,32 @@
         } catch (e) {
             console.error("Failed to parse JSON response:", e);
             // Fallback if response is not JSON, e.g., if backend returns HTML directly
-            document.getElementById('modal-content').innerHTML = xhr.responseText;
-            openModal();
+            // For errors, we'll use toast, for success, we'll still try to use modal if it's HTML
+            if (xhr.status >= 400) {
+                Toastify({
+                    text: 'An unexpected error occurred or invalid response from server.',
+                    duration: 3000,
+                    close: true,
+                    gravity: "top", // `top` or `bottom`
+                    position: "right", // `left`, `center` or `right`
+                    style: {
+                        background: "#ef4444", // Red color
+                        border: "1px solid #dc2626"
+                    },
+                }).showToast();
+            } else {
+                document.getElementById('modal-content').innerHTML = xhr.responseText;
+                openModal();
+            }
             return;
         }
 
-        let modalMessage = '';
         if (xhr.status >= 200 && xhr.status < 300) {
             if (response.message) {
-                modalMessage = `<h3 class="text-lg font-medium text-gray-900">Success!</h3><p class="mt-2 text-sm text-gray-500">${response.message}</p>`;
+                // For success, use modal
+                const modalMessage = `<h3 class="text-lg font-medium text-gray-900">Success!</h3><p class="mt-2 text-sm text-gray-500">${response.message}</p>`;
+                document.getElementById('modal-content').innerHTML = modalMessage;
+                openModal();
                 if (response.redirect_url) {
                     // Delay redirect slightly to allow modal to be seen
                     setTimeout(() => {
@@ -110,22 +130,53 @@
                 }
             }
         } else if (xhr.status >= 400) {
+            // For errors, use Toastify
             if (response.error) {
-                modalMessage = `<h3 class="text-lg font-medium text-red-600">Error!</h3><p class="mt-2 text-sm text-gray-500">${response.error}</p>`;
+                Toastify({
+                    text: response.error,
+                    duration: 3000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "#ef4444", // Red color
+                        border: "1px solid #dc2626"
+                    },
+                }).showToast();
             } else if (response.errors) {
-                modalMessage = `<h3 class="text-lg font-medium text-red-600">Validation Errors!</h3><ul class="mt-2 text-sm text-gray-500 list-disc pl-5">`;
                 for (const [key, value] of Object.entries(response.errors)) {
-                    modalMessage += `<li>${value[0]}</li>`;
+                    let toastText = '';
+                    if (key === 'non_field_errors') {
+                        toastText = value[0]; // Just the error message
+                    } else {
+                        const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        toastText = `<strong>${fieldName}:</strong> ${value[0]}`;
+                    }
+                    Toastify({
+                        text: toastText,
+                        duration: 3000,
+                        close: true,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#ef4444", // Red color
+                            border: "1px solid #dc2626"
+                        },
+                    }).showToast();
                 }
-                modalMessage += `</ul>`;
             } else {
-                modalMessage = `<h3 class="text-lg font-medium text-red-600">Error!</h3><p class="mt-2 text-sm text-gray-500">An unexpected error occurred.</p>`;
+                Toastify({
+                    text: 'An unexpected error occurred.',
+                    duration: 3000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "#ef4444", // Red color
+                        border: "1px solid #dc2626"
+                    },
+                }).showToast();
             }
-        }
-
-        if (modalMessage) {
-            document.getElementById('modal-content').innerHTML = modalMessage;
-            openModal();
         }
     });
 </script>

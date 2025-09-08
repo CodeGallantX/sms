@@ -56,6 +56,9 @@
             <div>
                 <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Sign in
+                    <span class="htmx-indicator ml-2">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
                 </button>
             </div>
         </form>
@@ -88,15 +91,32 @@
         } catch (e) {
             console.error("Failed to parse JSON response:", e);
             // Fallback if response is not JSON, e.g., if backend returns HTML directly
-            document.getElementById('modal-content').innerHTML = xhr.responseText;
-            openModal();
+            // For errors, we'll use toast, for success, we'll still try to use modal if it's HTML
+            if (xhr.status >= 400) {
+                Toastify({
+                    text: 'An unexpected error occurred or invalid response from server.',
+                    duration: 3000,
+                    close: true,
+                    gravity: "top", // `top` or `bottom`
+                    position: "right", // `left`, `center` or `right`
+                    style: {
+                        background: "#ef4444", // Red color
+                        border: "1px solid #dc2626" // Darker red border
+                    },
+                }).showToast();
+            } else {
+                document.getElementById('modal-content').innerHTML = xhr.responseText;
+                openModal();
+            }
             return;
         }
 
-        let modalMessage = '';
         if (xhr.status >= 200 && xhr.status < 300) {
             if (response.message) {
-                modalMessage = `<h3 class="text-lg font-medium text-gray-900">Success!</h3><p class="mt-2 text-sm text-gray-500">${response.message}</p>`;
+                // For success, use modal
+                const modalMessage = `<h3 class="text-lg font-medium text-gray-900">Success!</h3><p class="mt-2 text-sm text-gray-500">${response.message}</p>`;
+                document.getElementById('modal-content').innerHTML = modalMessage;
+                openModal();
                 if (response.redirect_url) {
                     // Delay redirect slightly to allow modal to be seen
                     setTimeout(() => {
@@ -105,22 +125,53 @@
                 }
             }
         } else if (xhr.status >= 400) {
+            // For errors, use Toastify
             if (response.error) {
-                modalMessage = `<h3 class="text-lg font-medium text-red-600">Error!</h3><p class="mt-2 text-sm text-gray-500">${response.error}</p>`;
+                Toastify({
+                    text: response.error,
+                    duration: 3000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "#ef4444", // Red color
+                        border: "1px solid #dc2626" // Darker red border
+                    },
+                }).showToast();
             } else if (response.errors) {
-                modalMessage = `<h3 class="text-lg font-medium text-red-600">Validation Errors!</h3><ul class="mt-2 text-sm text-gray-500 list-disc pl-5">`;
                 for (const [key, value] of Object.entries(response.errors)) {
-                    modalMessage += `<li>${value[0]}</li>`;
+                    let toastText = '';
+                    if (key === 'non_field_errors') {
+                        toastText = value[0]; // Just the error message
+                    } else {
+                        const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        toastText = `<strong>${fieldName}:</strong> ${value[0]}`;
+                    }
+                    Toastify({
+                        text: toastText,
+                        duration: 3000,
+                        close: true,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#ef4444", // Red color
+                            border: "1px solid #dc2626" // Darker red border
+                        },
+                    }).showToast();
                 }
-                modalMessage += `</ul>`;
             } else {
-                modalMessage = `<h3 class="text-lg font-medium text-red-600">Error!</h3><p class="mt-2 text-sm text-gray-500">An unexpected error occurred.</p>`;
+                Toastify({
+                    text: 'An unexpected error occurred.',
+                    duration: 3000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "#ef4444", // Red color
+                        border: "1px solid #dc2626" // Darker red border
+                    },
+                }).showToast();
             }
-        }
-
-        if (modalMessage) {
-            document.getElementById('modal-content').innerHTML = modalMessage;
-            openModal();
         }
     });
 </script>
