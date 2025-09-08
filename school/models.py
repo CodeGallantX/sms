@@ -18,3 +18,16 @@ class VerificationToken(models.Model):
 
     def __str__(self):
         return f'Verification token for {self.user.email}'
+
+class Profile(models.Model):
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
+
+    def __str__(self):
+        return f'Profile for {self.user.username}'
