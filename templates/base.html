@@ -17,6 +17,14 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* IMPORTANT: For full dark mode functionality, ensure you have 'darkMode: "class"' in your tailwind.config.js */
+        /* Example:
+        // tailwind.config.js
+        module.exports = {
+          darkMode: 'class', // or 'media'
+          // ...
+        }
+        */
         body {
             font-family: 'Figtree', sans-serif;
         }
@@ -28,6 +36,66 @@
         }
         .htmx-request.htmx-indicator {
             display: inline-block; /* for elements that are themselves indicators */
+        }
+    /* Basic Dark Mode Styles for Demonstration */
+        html.dark {
+            background-color: #1a202c; /* Dark background for the entire page */
+            color: #e2e8f0; /* Light text color */
+        }
+
+        html.dark body {
+            background-color: #1a202c; /* Ensure body also has dark background */
+            color: #e2e8f0; /* Ensure body text is light */
+        }
+
+        html.dark nav {
+            background-color: #2d3748; /* Darker background for navigation */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Darker shadow */
+        }
+
+        html.dark nav a {
+            color: #a0aec0; /* Lighter text for nav links */
+        }
+
+        html.dark nav a:hover {
+            color: #cbd5e0; /* Even lighter text on hover */
+            background-color: #4a5568; /* Darker background on hover */
+        }
+
+        html.dark footer {
+            background-color: #2d3748; /* Darker background for footer */
+            color: #a0aec0; /* Lighter text for footer */
+        }
+
+        html.dark #preloader {
+            background-color: #2d3748; /* Darker preloader background */
+        }
+
+        html.dark #modal-content {
+            background-color: #2d3748; /* Darker modal background */
+            color: #e2e8f0; /* Light text for modal */
+        }
+
+        /* Adjust text colors for specific elements if needed */
+        html.dark h2, html.dark h3 {
+            color: #e2e8f0;
+        }
+        html.dark p {
+            color: #a0aec0;
+        }
+        html.dark label {
+            color: #a0aec0;
+        }
+        html.dark input {
+            background-color: #4a5568;
+            border-color: #6b7280;
+            color: #e2e8f0;
+        }
+        html.dark input::placeholder {
+            color: #a0aec0;
+        }
+        html.dark button {
+            /* Adjust button colors if they are not using Tailwind's dark variants */
         }
     </style>
 </head>
@@ -49,9 +117,9 @@
                     <button id="theme-toggle" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
                         <i class="fas fa-sun" id="theme-toggle-icon"></i>
                     </button>
-                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Features</a>
-                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Pricing</a>
-                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Contact</a>
+                    <a href="{% url 'features' %}" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Features</a>
+                    <a href="{% url 'pricing' %}" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Pricing</a>
+                    <a href="{% url 'contact' %}" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Contact Us</a>
                     {% if user.is_authenticated %}
                         <a href="{% url 'logout' %}" class="ml-4 px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Logout</a>
                         <a href="{% url 'dashboard' %}" class="ml-4 px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Dashboard</a>
@@ -129,36 +197,35 @@
     const themeToggleBtn = document.getElementById('theme-toggle');
     const themeToggleIcon = document.getElementById('theme-toggle-icon');
 
-    // Function to update icon classes
-    function updateThemeIcon(isDark) {
-        if (isDark) {
+    // Function to apply theme and update icon
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
             themeToggleIcon.classList.remove('fa-sun');
             themeToggleIcon.classList.add('fa-moon');
         } else {
+            document.documentElement.classList.remove('dark');
             themeToggleIcon.classList.remove('fa-moon');
             themeToggleIcon.classList.add('fa-sun');
         }
     }
 
-    // On page load, set the theme based on localStorage or system preference
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-        updateThemeIcon(true);
+    // Initialize theme on page load
+    const savedTheme = localStorage.theme;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme === 'dark' || (savedTheme === undefined && prefersDark)) {
+        applyTheme('dark');
     } else {
-        document.documentElement.classList.remove('dark');
-        updateThemeIcon(false);
+        applyTheme('light');
     }
 
+    // Toggle theme on button click
     themeToggleBtn.addEventListener('click', () => {
-        if (document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
-            localStorage.theme = 'light';
-            updateThemeIcon(false);
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.theme = 'dark';
-            updateThemeIcon(true);
-        }
+        const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.theme = newTheme;
+        applyTheme(newTheme);
     });
     // Preloader hide logic
     window.addEventListener('load', () => {

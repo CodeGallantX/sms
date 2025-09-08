@@ -1,36 +1,36 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="flex h-screen bg-gray-100" x-data="{ activeTab: 'dashboard' }">
+<div class="flex h-screen bg-gray-100">
     <!-- Sidebar -->
     <div class="w-64 bg-white shadow-md">
         <div class="p-6">
             <h1 class="text-2xl font-bold text-gray-800">Student Dashboard</h1>
         </div>
         <nav class="mt-6">
-            <a href="#" @click.prevent="activeTab = 'dashboard'" :class="{ 'bg-gray-200': activeTab === 'dashboard' }" class="block px-4 py-2 text-gray-600 hover:bg-gray-200">Dashboard</a>
-            <a href="#" @click.prevent="activeTab = 'payments'" :class="{ 'bg-gray-200': activeTab === 'payments' }" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Payments</a>
-            <a href="#" @click.prevent="activeTab = 'profile'" :class="{ 'bg-gray-200': activeTab === 'profile' }" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Profile</a>
-            <a href="#" @click.prevent="activeTab = 'results'" :class="{ 'bg-gray-200': activeTab === 'results' }" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Results</a>
-            <a href="#" @click.prevent="activeTab = 'settings'" :class="{ 'bg-gray-200': activeTab === 'settings' }" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Settings</a>
+            <a href="#" id="tab-dashboard-link" onclick="showTab('dashboard', this)" class="block px-4 py-2 text-gray-600 hover:bg-gray-200 active-tab">Dashboard</a>
+            <a href="#" id="tab-payments-link" onclick="showTab('payments', this)" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Payments</a>
+            <a href="#" id="tab-profile-link" onclick="showTab('profile', this)" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Profile</a>
+            <a href="#" id="tab-results-link" onclick="showTab('results', this)" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Results</a>
+            <a href="#" id="tab-settings-link" onclick="showTab('settings', this)" class="block px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200">Settings</a>
         </nav>
     </div>
 
     <!-- Main content -->
     <div class="flex-1 p-10">
-        <div x-show="activeTab === 'dashboard'">
+        <div id="tab-dashboard-content">
             <h2 class="text-2xl font-bold">Welcome to your dashboard, {{ user.username }}!</h2>
             <p class="mt-2 text-gray-600">This is the main dashboard content.</p>
         </div>
-        <div x-show="activeTab === 'payments'">
+        <div id="tab-payments-content" hidden>
             <h2 class="text-2xl font-bold">Payments</h2>
             <p class="mt-2 text-gray-600">This is the payments section.</p>
         </div>
-        <div x-show="activeTab === 'profile'">
+        <div id="tab-profile-content" hidden>
             <h2 class="text-2xl font-bold">Profile</h2>
             <p class="mt-2 text-gray-600">This is the profile section.</p>
         </div>
-        <div x-show="activeTab === 'results'">
+        <div id="tab-results-content" hidden>
             <h2 class="text-2xl font-bold">Results</h2>
             <div class="mt-4">
                 {% if results %}
@@ -58,10 +58,42 @@
                 {% endif %}
             </div>
         </div>
-        <div x-show="activeTab === 'settings'">
+        <div id="tab-settings-content" hidden>
             <h2 class="text-2xl font-bold">Settings</h2>
             <p class="mt-2 text-gray-600">This is the settings section.</p>
         </div>
     </div>
 </div>
+
+<style>
+    .active-tab {
+        background-color: #e2e8f0; /* gray-200 */
+        font-weight: bold;
+    }
+</style>
+
+<script>
+    function showTab(tabName, clickedElement) {
+        // Hide all tab contents
+        document.querySelectorAll('[id$="-content"]').forEach(content => {
+            content.hidden = true;
+        });
+
+        // Show the selected tab content
+        document.getElementById(`tab-${tabName}-content`).hidden = false;
+
+        // Remove active-tab class from all links
+        document.querySelectorAll('nav a').forEach(link => {
+            link.classList.remove('active-tab');
+        });
+
+        // Add active-tab class to the clicked link
+        clickedElement.classList.add('active-tab');
+    }
+
+    // Show dashboard tab by default on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        showTab('dashboard', document.getElementById('tab-dashboard-link'));
+    });
+</script>
 {% endblock %}

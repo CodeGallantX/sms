@@ -9,14 +9,15 @@ class ResultForm(forms.ModelForm):
         model = Result
         fields = ['student', 'subject', 'score', 'grade']
 
-class CustomUserCreationForm(UserCreationForm):
+class CustomUserCreationForm(forms.ModelForm): # Change inheritance from UserCreationForm to forms.ModelForm
     full_name = forms.CharField(max_length=100, required=True)
     email = forms.EmailField(required=True)
+    password = forms.CharField(widget=forms.PasswordInput, label="Password")
+    password2 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
 
-    class Meta(UserCreationForm.Meta):
+    class Meta: # Remove UserCreationForm.Meta
         model = User
-        # Remove UserCreationForm.Meta.fields to exclude default username
-        fields = ('full_name', 'email', 'password', 'password2') # Explicitly list fields needed
+        fields = ('full_name', 'email', 'password', 'password2')
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -24,14 +25,22 @@ class CustomUserCreationForm(UserCreationForm):
             raise forms.ValidationError("This email address is already in use.")
         return email
 
+    def clean(self): # Add a clean method for password confirmation
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        password2 = cleaned_data.get("password2")
+
+        if password and password2 and password != password2:
+            self.add_error('password2', "Passwords don't match")
+        return cleaned_data
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['full_name'].split(' ', 1)[0]
         user.last_name = self.cleaned_data['full_name'].split(' ', 1)[-1] if ' ' in self.cleaned_data['full_name'] else ''
+        
         # Auto-generate username from email or a UUID if email is too long/not unique enough for username field
-        # For simplicity, let's use email as username, but ensure it's unique
-        # Django's User model username field has max_length=150
         username_base = self.cleaned_data['email'].split('@')[0]
         username = username_base
         counter = 1
@@ -39,6 +48,9 @@ class CustomUserCreationForm(UserCreationForm):
             username = f"{username_base}{counter}"
             counter += 1
         user.username = username # Set the auto-generated username
+
+        # Set the password
+        user.set_password(self.cleaned_data["password"])
 
         if commit:
             user.save()

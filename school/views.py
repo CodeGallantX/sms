@@ -30,6 +30,9 @@ def index(request):
     return render(request, 'index.html')
 
 
+def registration_success_view(request):
+    return render(request, 'registration/registration_success.html')
+
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -51,7 +54,7 @@ def register(request):
             to_email = user.email
             send_mail(subject, plain_message, from_email, [to_email], html_message=html_message)
 
-            return JsonResponse({'message': 'Account created successfully. Please check your email for verification link.', 'redirect_url': '/login/'})
+            return redirect('registration_success') # Redirect to the new success page
         else:
             return JsonResponse({'errors': form.errors}, status=400)
     return render(request, 'registration/register.html')
@@ -147,5 +150,15 @@ def verify_email(request, token):
 @login_required
 def onboarding(request):
     return render(request, 'onboarding.html')
+
+
+def contact_view(request):
+    return render(request, 'contact.html')
+
+def features_view(request):
+    return render(request, 'features.html')
+
+def pricing_view(request):
+    return render(request, 'pricing.html')
 
 

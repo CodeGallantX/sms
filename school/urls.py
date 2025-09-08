@@ -17,4 +17,8 @@ urlpatterns = [
     path('delete_result/<int:pk>/', views.delete_result, name='delete_result'),
     path('verify_email/<uuid:token>/', views.verify_email, name='verify_email'),
     path('onboarding/', views.onboarding, name='onboarding'),
+    path('registration_success/', views.registration_success_view, name='registration_success'),
+    path('contact/', views.contact_view, name='contact'),
+    path('features/', views.features_view, name='features'),
+    path('pricing/', views.pricing_view, name='pricing'),
 ]
