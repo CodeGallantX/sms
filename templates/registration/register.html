@@ -2,47 +2,7 @@
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8" x-data="{
-        full_name: '',
-        password: '',
-        password2: '',
-        email: '',
-        showPassword: false,
-        showPassword2: false,
-        errors: {},
-        submitForm() {
-            this.errors = {};
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            fetch('{% url "register" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    full_name: this.full_name,
-                    password: this.password,
-                    password2: this.password2,
-                    email: this.email
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.errors) {
-                    this.errors = data.errors;
-                    for (const [key, value] of Object.entries(this.errors)) {
-                        sonner.toast.error(value[0]);
-                    }
-                } else {
-                    sonner.toast.success(data.message);
-                    window.location.href = '{% url "login" %}';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-    }">
+    <div class="max-w-md w-full space-y-8 bg-white shadow-lg rounded-lg p-8">
         <div class="text-center">
             <h2 class="text-3xl font-bold tracking-tight text-gray-900">
                 Create a new account
@@ -51,7 +11,8 @@
                 Enter your details to create a new account
             </p>
         </div>
-        <form class="mt-8 space-y-6" @submit.prevent="submitForm">
+        <form class="mt-8 space-y-6" hx-post="{% url 'register' %}" hx-trigger="submit" hx-target="body" hx-swap="outerHTML">
+            {% csrf_token %}
             <div class="space-y-4">
                 <div>
                     <label for="full_name" class="block text-sm font-medium text-gray-700">Full Name</label>
@@ -59,7 +20,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-user text-gray-400"></i>
                         </div>
-                        <input id="full_name" name="full_name" type="text" autocomplete="name" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your full name" x-model="full_name">
+                        <input id="full_name" name="full_name" type="text" autocomplete="name" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your full name">
                     </div>
                 </div>
                 <div>
@@ -68,7 +29,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-envelope text-gray-400"></i>
                         </div>
-                        <input id="email-address" name="email" type="email" autocomplete="email" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your email address" x-model="email">
+                        <input id="email-address" name="email" type="email" autocomplete="email" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your email address">
                     </div>
                 </div>
                 <div>
@@ -77,9 +38,9 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-lock text-gray-400"></i>
                         </div>
-                        <input id="password" name="password" :type="showPassword ? 'text' : 'password'" autocomplete="new-password" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your password" x-model="password">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" @click="showPassword = !showPassword">
-                            <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <input id="password" name="password" type="password" autocomplete="new-password" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your password">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onclick="togglePasswordVisibility('password', this)">
+                            <i class="fas fa-eye"></i>
                         </div>
                     </div>
                 </div>
@@ -89,9 +50,9 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-lock text-gray-400"></i>
                         </div>
-                        <input id="password2" name="password2" :type="showPassword2 ? 'text' : 'password'" autocomplete="new-password" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Confirm your password" x-model="password2">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" @click="showPassword2 = !showPassword2">
-                            <i class="fas" :class="showPassword2 ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <input id="password2" name="password2" type="password" autocomplete="new-password" required class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Confirm your password">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onclick="togglePasswordVisibility('password2', this)">
+                            <i class="fas fa-eye"></i>
                         </div>
                     </div>
                 </div>
@@ -108,4 +69,64 @@
         </div>
     </div>
 </div>
+
+<script>
+    function togglePasswordVisibility(inputId, iconElement) {
+        const passwordInput = document.getElementById(inputId);
+        const icon = iconElement.querySelector('i');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        const xhr = event.detail.xhr;
+        let response = {};
+        try {
+            response = JSON.parse(xhr.responseText);
+        } catch (e) {
+            console.error("Failed to parse JSON response:", e);
+            // Fallback if response is not JSON, e.g., if backend returns HTML directly
+            document.getElementById('modal-content').innerHTML = xhr.responseText;
+            openModal();
+            return;
+        }
+
+        let modalMessage = '';
+        if (xhr.status >= 200 && xhr.status < 300) {
+            if (response.message) {
+                modalMessage = `<h3 class="text-lg font-medium text-gray-900">Success!</h3><p class="mt-2 text-sm text-gray-500">${response.message}</p>`;
+                if (response.redirect_url) {
+                    // Delay redirect slightly to allow modal to be seen
+                    setTimeout(() => {
+                        window.location.href = response.redirect_url;
+                    }, 1500);
+                }
+            }
+        } else if (xhr.status >= 400) {
+            if (response.error) {
+                modalMessage = `<h3 class="text-lg font-medium text-red-600">Error!</h3><p class="mt-2 text-sm text-gray-500">${response.error}</p>`;
+            } else if (response.errors) {
+                modalMessage = `<h3 class="text-lg font-medium text-red-600">Validation Errors!</h3><ul class="mt-2 text-sm text-gray-500 list-disc pl-5">`;
+                for (const [key, value] of Object.entries(response.errors)) {
+                    modalMessage += `<li>${value[0]}</li>`;
+                }
+                modalMessage += `</ul>`;
+            } else {
+                modalMessage = `<h3 class="text-lg font-medium text-red-600">Error!</h3><p class="mt-2 text-sm text-gray-500">An unexpected error occurred.</p>`;
+            }
+        }
+
+        if (modalMessage) {
+            document.getElementById('modal-content').innerHTML = modalMessage;
+            openModal();
+        }
+    });
+</script>
 {% endblock %}
