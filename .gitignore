@@ -1,5 +1,8 @@
-.env
-env
-PRD.md
-RDMP.md
+*.py[cod]
+__pycache__/
 db.sqlite3
+.env
+staticfiles/
+media/
+.pytest_cache/
+*.log
